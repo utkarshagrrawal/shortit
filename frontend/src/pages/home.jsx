@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import LinkIcon from "../components/icons/link";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import ClickIcon from "../components/icons/click";
 
 export default function Home() {
   const { shortUrl } = useParams();
@@ -12,6 +13,7 @@ export default function Home() {
   });
   const [loading, setLoading] = useState(false);
   const [urls, setUrls] = useState([]);
+  const [ip, setIp] = useState("");
 
   useEffect(() => {
     if (shortUrl) {
@@ -32,12 +34,27 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    try {
-      setUrls(JSON.parse(localStorage.getItem("urls") || "[]"));
-    } catch (error) {
-      localStorage.removeItem("urls");
-      setUrls([]);
-    }
+    axios
+      .get("https://api.ipify.org")
+      .then((res) => {
+        setIp(res.data);
+      })
+      .catch((err) => {
+        console.log("Error fetching IP address");
+      });
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get(import.meta.env.VITE_API_URL + "/api/v1/user/urls", {
+        withCredentials: true,
+      })
+      .then((res) => {
+        setUrls(res.data || []);
+      })
+      .catch((err) => {
+        console.log("Error fetching user URLs");
+      });
   }, []);
 
   const handleSubmit = (e) => {
@@ -53,11 +70,12 @@ export default function Home() {
     axios
       .post(
         import.meta.env.VITE_API_URL + "/api/v1/shorten",
-        { url },
+        { url, ip },
         {
           headers: {
             "Content-Type": "application/json",
           },
+          withCredentials: true,
         }
       )
       .then((res) => {
@@ -65,24 +83,18 @@ export default function Home() {
           message: "Link shortened successfully: " + res.data,
           type: "success",
         });
-        let oldUrls;
-        try {
-          oldUrls = JSON.parse(localStorage.getItem("urls") || "[]");
-        } catch (error) {
-          oldUrls = [{ originalUrl: url, shortUrl: res.data }];
-        }
-        let isUrlPresent = oldUrls.find((u) => u.originalUrl === url);
+        let isUrlPresent =
+          urls.length > 0 && urls.find((u) => u.shortUrl === res.data);
         if (!isUrlPresent) {
-          setUrls([...oldUrls, { originalUrl: url, shortUrl: res.data }]);
-          localStorage.setItem(
-            "urls",
-            JSON.stringify([
-              ...oldUrls,
-              { originalUrl: url, shortUrl: res.data },
-            ])
-          );
-        } else {
-          setUrls(oldUrls);
+          setUrls([
+            ...urls,
+            {
+              originalUrl: url,
+              shortUrl: res.data,
+              clicks: 0,
+              createdAt: new Date().toISOString(),
+            },
+          ]);
         }
       })
       .catch((err) => {
@@ -97,7 +109,23 @@ export default function Home() {
       });
   };
 
-  const handleDelete = () => {};
+  const handleDelete = (url) => {
+    const shortId = url.shortUrl.split("/");
+    axios
+      .delete(import.meta.env.VITE_API_URL + "/api/v1/" + shortId[3], {
+        withCredentials: true,
+      })
+      .then(() => {
+        setUrls(urls.filter((u) => u.shortUrl !== url.shortUrl));
+      })
+      .catch((err) => {
+        setResponse({
+          message:
+            err.response?.data || "An error occurred while deleting the link",
+          type: "error",
+        });
+      });
+  };
 
   return shortUrl ? (
     <div className="min-h-screen w-full flex items-center justify-center">
@@ -193,29 +221,45 @@ export default function Home() {
             </button>
           </form>
 
-          <div className="mt-4">
+          <div className="mt-4 max-h-56 overflow-auto">
             {urls.map((u, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between p-3 border border-gray-200 rounded-lg mt-4"
+                className="flex flex-col sm:flex-row items-center justify-between p-4 bg-white shadow-md border border-gray-200 rounded-lg mt-4 hover:shadow-lg transition-shadow"
               >
-                <div>
-                  <p className="text-gray-600 text-sm">{u.originalUrl}</p>
+                {/* URL Information Section */}
+                <div className="flex-1">
+                  <p className="text-gray-600 text-sm mb-2 break-words">
+                    <span className="font-medium text-gray-800">
+                      Original URL:
+                    </span>{" "}
+                    {u.originalUrl}
+                  </p>
                   <a
                     href={u.shortUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-blue-500 text-sm font-semibold hover:underline"
+                    className="text-blue-500 text-sm font-semibold hover:underline break-words"
                   >
                     {u.shortUrl}
                   </a>
                 </div>
-                <button
-                  className="text-red-500 text-sm font-semibold"
-                  onClick={handleDelete}
-                >
-                  Delete
-                </button>
+
+                {/* Click Count Section */}
+                <div className="flex items-center mt-4 sm:mt-0 sm:ml-6">
+                  <div className="flex items-center bg-blue-100 text-blue-600 font-semibold text-sm px-4 py-2 rounded-lg mr-4">
+                    <ClickIcon className="size-5 mr-1" />
+                    {u.clicks || 0} Clicks
+                  </div>
+
+                  {/* Delete Button */}
+                  <button
+                    className="bg-red-500 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+                    onClick={() => handleDelete(u)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
