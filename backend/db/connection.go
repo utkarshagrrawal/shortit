@@ -8,6 +8,7 @@ import (
 )
 
 var URLCollection *mongo.Collection
+var UserCollection *mongo.Collection
 
 func init() {
 	mongodbURI := os.Getenv("MONGODB_URI")
@@ -16,4 +17,5 @@ func init() {
 		panic(err)
 	}
 	URLCollection = client.Database("shortit").Collection("urls")
+	UserCollection = client.Database("shortit").Collection("users")
 }
