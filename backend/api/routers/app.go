@@ -10,7 +10,7 @@ func AppRouter() *mux.Router {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/shorten", handlers.CreateShortURL).Methods("POST", "OPTIONS")
-	router.HandleFunc("/{shortURL}", handlers.RedirectToOriginalURL).Methods("GET")
+	router.HandleFunc("/{shortURL}", handlers.RedirectToOriginalURL).Methods("GET", "OPTIONS")
 
 	return router
 }
