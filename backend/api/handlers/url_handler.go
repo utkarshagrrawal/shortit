@@ -32,6 +32,12 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, username, http.StatusInternalServerError)
 			return
 		}
+	} else if usernameCookie.Value == "" {
+		username = services.GenerateUsernameService()
+		if username == "Error creating user" {
+			http.Error(w, username, http.StatusInternalServerError)
+			return
+		}
 	} else {
 		username = usernameCookie.Value
 	}
