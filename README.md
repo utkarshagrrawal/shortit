@@ -39,7 +39,7 @@
 </ol>
 
 <h2>⚠️ License</h2>
-<p>This project is licensed under the <strong>MIT License</strong>. See the <code>LICENSE</code> file for more details.</p>
+<p>This project is licensed under the <strong>MIT License</strong>. See the <a href="LICENSE">LICENSE</a> file for more details.</p>
 
 <h2>💬 Contact</h2>
 <p>If you have any questions or suggestions, please feel free to reach out to <strong>utkarshagrawal09jan@gmail.com</strong>.</p>
