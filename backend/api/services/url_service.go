@@ -72,19 +72,19 @@ func CreateShortURLService(url, proxyIP, agent, ip, username string) (string, st
 	return "", shortURL
 }
 
-func RedirectService(shortURL string) string {
+func RedirectService(shortURL string) (string, string) {
 	result := db.URLCollection.FindOne(context.TODO(), bson.D{{Key: "short_url", Value: os.Getenv("BASE_URL") + "/" + shortURL}})
 	if result.Err() != nil {
-		return "Error finding short URL"
+		return "Error finding short URL", ""
 	}
 	var url map[string]interface{}
 	err := result.Decode(&url)
 	if err != nil {
-		return "Error decoding short URL"
+		return "Error decoding short URL", ""
 	}
 	_, err = db.URLCollection.UpdateOne(context.TODO(), bson.D{{Key: "short_url", Value: os.Getenv("BASE_URL") + "/" + shortURL}}, bson.D{{Key: "$inc", Value: bson.D{{Key: "clicks", Value: 1}}}})
 	if err != nil {
-		return "Error updating short URL analytics"
+		return "Error updating short URL analytics", ""
 	}
-	return url["original_url"].(string)
+	return "", url["original_url"].(string)
 }

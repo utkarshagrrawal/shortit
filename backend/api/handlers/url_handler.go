@@ -45,6 +45,7 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request) {
 		Value:    username,
 		HttpOnly: true,
 		MaxAge:   86400 * 400,
+		Path:     "/api/v1",
 	}
 	if os.Getenv("ENV") == "production" {
 		cookie.SameSite = http.SameSiteNoneMode
@@ -57,8 +58,8 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request) {
 func RedirectToOriginalURL(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	shortId := params["shortId"]
-	originalURL := services.RedirectService(shortId)
-	if originalURL == "" {
+	err, originalURL := services.RedirectService(shortId)
+	if err != "" {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
 	}

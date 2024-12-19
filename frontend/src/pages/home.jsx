@@ -12,17 +12,20 @@ export default function Home() {
     type: "",
   });
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [urls, setUrls] = useState([]);
   const [ip, setIp] = useState("");
 
   useEffect(() => {
     if (shortUrl) {
+      setRedirecting(true);
       axios
         .get(import.meta.env.VITE_API_URL + "/api/v1/" + shortUrl)
         .then((res) => {
           window.location.href = res.data;
         })
         .catch((err) => {
+          setRedirecting(false);
           setResponse({
             message:
               err.response?.data ||
@@ -127,7 +130,7 @@ export default function Home() {
       });
   };
 
-  return shortUrl ? (
+  return redirecting ? (
     <div className="min-h-screen w-full flex items-center justify-center">
       <div className="grid min-h-[140px] w-full place-items-center overflow-x-scroll rounded-lg p-6 lg:overflow-visible">
         <svg

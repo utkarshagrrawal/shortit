@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"os"
 	"shortit/db"
+	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -18,7 +19,7 @@ func GenerateUsernameService() string {
 	}
 	isUserPresent := db.UserCollection.FindOne(context.TODO(), bson.D{{Key: "username", Value: generatedName}})
 	if isUserPresent.Err() == mongo.ErrNoDocuments {
-		_, err := db.UserCollection.InsertOne(context.TODO(), bson.D{{Key: "username", Value: generatedName}})
+		_, err := db.UserCollection.InsertOne(context.TODO(), bson.D{{Key: "username", Value: generatedName}, {Key: "rateLimit", Value: 10}, {Key: "rateLimitReset", Value: time.Now().Unix() + 300}})
 		if err != nil {
 			return "Error creating user"
 		}
@@ -37,7 +38,7 @@ func GenerateUsernameService() string {
 		return "Error creating user"
 	}
 	if isUserPresent.Err() == mongo.ErrNoDocuments {
-		_, err := db.UserCollection.InsertOne(context.TODO(), bson.D{{Key: "username", Value: generatedName}})
+		_, err := db.UserCollection.InsertOne(context.TODO(), bson.D{{Key: "username", Value: generatedName}, {Key: "rateLimit", Value: 10}, {Key: "rateLimitReset", Value: time.Now().Unix() + 300}})
 		if err != nil {
 			return "Error creating user"
 		}
