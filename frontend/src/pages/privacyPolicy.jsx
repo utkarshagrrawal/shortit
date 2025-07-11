@@ -112,10 +112,10 @@ export default function PrivacyPolicy() {
             </p>
             <p className="text-gray-900 font-medium">
               <a
-                href="mailto:utkarsh09jan@gmail.com"
+                href="mailto:utkarshagrawal09jan@gmail.com"
                 className="text-blue-500 hover:underline"
               >
-                utkarsh09jan@gmail.com
+                utkarshagrawal09jan@gmail.com
               </a>
             </p>
           </div>
